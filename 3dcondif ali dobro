@@ -1,0 +1,52 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+L = 10
+d = 1
+bk = int(L/d)
+dx = d
+dy = d
+dz = d
+dt = 1
+Vx = 0.0005
+Vy = 0.0005
+Vz = 0
+D = 0.0001
+C0 = 20
+R = 0
+
+#plt.ion()
+
+t = np.arange(0, 10, dt)
+C = np.zeros((bk,)*3)
+dCdt = np.zeros((bk,)*3)
+
+x = np.linspace(0, L, bk)
+y = np.linspace(0, L, bk)
+z = np.linspace(0, L, bk)
+X, Y, Z = np.meshgrid(x, y, z)
+
+colors = np.random.standard_normal(len(x))
+
+C[:,:,:] = 0
+dCdt[:,:,:] = 0
+C[8,8,8] = C0
+    
+for m in range(1, len(t)):
+    #plt.clf()
+    #C[5, 5, 5] = C0 + (m-1)*R
+    for i in range(1, bk - 1):
+        for j in range(1, bk - 1):
+            for k in range(1, bk - 1):
+                
+                
+                dCdt[i,j,k] = D*((C[i+1,j,k]-2*C[i,j,k]+C[i-1,j,k])/dx**2+(C[i,j+1,k]-2*C[i,j,k]+C[i,j-1,k])/dy**2+(C[i,j,k+1]-2*C[i,j,k]+C[i,j,k-1])/dz**2) - (Vx*((C[i,j,k]-C[i-1,j,k])/dx)+Vy*((C[i,j,k]-C[i,j-1,k])/dy)+Vz*((C[i,j,k]-C[i,j,k-1])/dz))
+        
+                C = C + dCdt*dt
+    
+    fig = plt.figure()
+    ax = plt.axes(projection="3d")
+    plot = ax.scatter3D(X, Y, Z, c=C, alpha=0.5, marker='s', cmap=plt.hot())
+    fig.colorbar(plot)
+    plt.show()
+    plt.pause(2)
