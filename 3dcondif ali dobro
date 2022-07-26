@@ -1,49 +1,77 @@
-def con_dif(L, d, dt, Vx, Vy, Vz, D, C0, R):
+def con_dif(L, d, dt, Vx0, Vy0, Vz0, D, C0, R):
+    
     import numpy as np
     import matplotlib.pyplot as plt
     
     fig = plt.figure()
     
-
-    bk = int(L/d)
-    dx = d
-    dy = d
-    dz = d
+    dx = L/d
+    dy = L/d
+    dz = L/d
 
     plt.ion()
 
-    t = np.arange(0, 10, dt)
-    C = np.zeros((bk,)*3)
-    dCdt = np.zeros((bk,)*3)
+    t = np.arange(0, 60, dt)
+    C = np.zeros((d,)*3)
+    dCdt = np.zeros((d,)*3)
+    Vx = np.zeros((d,)*3)
+    Vy = np.zeros((d,)*3)
+    Vz = np.zeros((d,)*3)
+    Vxp = np.zeros((d,)*3)
+    Vyp = np.zeros((d,)*3)
+    Vzp = np.zeros((d,)*3)
+    alfa = np.zeros((d,)*3)
 
-    x = np.linspace(0, L, bk)
-    y = np.linspace(0, L, bk)
-    z = np.linspace(0, L, bk)
+
+    x = np.linspace(dx/2, L - dx/2, d)
+    y = np.linspace(dy/2, L - dy/2, d)
+    z = np.linspace(dz/2, L - dz/2, d)
     X, Y, Z = np.meshgrid(x, y, z)
 
     colors = np.random.standard_normal(len(x))
 
     C[:,:,:] = 0
     dCdt[:,:,:] = 0
-    C[5,2,2] = C0
+    Vx[:,:,:] = Vy[:,:,:] = Vz[:,:,:] = 0.0001
+
+    C[5,5,5] = C0
+    Vx[1:5,1:5,1:5] = Vx0
+    Vy[1:5,1:5,1:5] = Vy0
+    Vz[1:5,1:5,1:5] = Vz0
     
     for m in range(1, len(t)):
         plt.clf()
-        C[5, 5, 5] = C0 + (m-1)*R
-        for i in range(1, bk - 1):
-            for j in range(1, bk - 1):
-                for k in range(1, bk - 1):
+        Vxp = Vx.copy()
+        Vyp = Vy.copy()
+        Vzp = Vz.copy()
+        #print(Vx, Vy, Vz)
+        #C[5, 5, 5] = C0 + (m-1)*R
+        for i in range(0, d-1):
+            for j in range(0, d-1):
+                for k in range(0, d-1):
+                    
+                    
+
+                    Vx[i,j,k] = Vxp[i,j,k]-dt*(((Vxp[i,j,k]/dx)*(Vxp[i,j,k]-Vxp[i-1,j,k])+(Vyp[i,j,k]/dy)*(Vxp[i,j,k]-Vxp[i,j-1,k])+Vzp[i,j,k]/dx)*(Vxp[i,j,k]-Vxp[i-1,j,k]))
+                    Vy[i,j,k] = Vyp[i,j,k]-dt*(((Vxp[i,j,k]/dx)*(Vyp[i,j,k]-Vyp[i-1,j,k])+(Vyp[i,j,k]/dy)*(Vyp[i,j,k]-Vyp[i,j-1,k])+Vzp[i,j,k]/dx)*(Vyp[i,j,k]-Vyp[i-1,j,k]))
+                    Vz[i,j,k] = Vzp[i,j,k]-dt*(((Vzp[i,j,k]/dx)*(Vzp[i,j,k]-Vzp[i-1,j,k])+(Vyp[i,j,k]/dy)*(Vzp[i,j,k]-Vzp[i,j-1,k])+Vzp[i,j,k]/dx)*(Vzp[i,j,k]-Vzp[i-1,j,k]))
                 
-                
-                    dCdt[i,j,k] = D*((C[i+1,j,k]-2*C[i,j,k]+C[i-1,j,k])/dx**2+(C[i,j+1,k]-2*C[i,j,k]+C[i,j-1,k])/dy**2+(C[i,j,k+1]-2*C[i,j,k]+C[i,j,k-1])/dz**2) - (Vx*((C[i,j,k]-C[i-1,j,k])/dx)+Vy*((C[i,j,k]-C[i,j-1,k])/dy)+Vz*((C[i,j,k]-C[i,j,k-1])/dz))
+                    dCdt[i,j,k] = D*((C[i+1,j,k]-2*C[i,j,k]+C[i-1,j,k])/dx**2+(C[i,j+1,k]-2*C[i,j,k]+C[i,j-1,k])/dy**2+(C[i,j,k+1]-2*C[i,j,k]+C[i,j,k-1])/dz**2) - (Vx[i,j,k]*((C[i,j,k]-C[i-1,j,k])/dx)+Vy[i,j,k]*((C[i,j,k]-C[i,j-1,k])/dy)+Vz[i,j,k]*((C[i,j,k]-C[i,j,k-1])/dz))
         
-                    C = C + dCdt*dt
+                    C = C + dCdt*dt          
+
+                    if C[i,j,k] == 0:
+                        alfa[i,j,k] = 0
+                    else:
+                        alfa[i,j,k] = 1
+
+        print(Vx)
     
         ax = plt.axes(projection="3d")
-        plot = ax.scatter3D(X, Y, Z, c=C, alpha=0.5, marker='s', cmap=plt.hot())
+        plot = ax.scatter3D(X, Y, Z, c=C, alpha=1, marker='.', cmap=plt.hot())
         fig.colorbar(plot)
         plt.show()
-        plt.pause(2)
+        plt.pause(0.1)
 
     
-con_dif(10, 1, 1, 0.0005, 0.0005, 0, 0.0001, 2, 0)
+con_dif(10, 10, 0.1, 0.001, 0.001, 0, 0.0001, 2, 0)
