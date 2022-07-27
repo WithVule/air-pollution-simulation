@@ -1,7 +1,8 @@
-def con_dif(L, d, dt, Vx0, Vy0, Vz0, D, C0, R):
+def con_dif(L, d, dt, Vx0, Vy0, Vz0, gas, T, R):
     
     import numpy as np
     import matplotlib.pyplot as plt
+    import math as m
     
     fig = plt.figure()
     
@@ -9,9 +10,37 @@ def con_dif(L, d, dt, Vx0, Vy0, Vz0, D, C0, R):
     dy = L/d
     dz = L/d
 
+    #konstante
+    g = 9.81
+    Msv = 0.0289
+    T0 = 288.16
+    R0 = 8.314
+    A = 1.859*10**(-3)
+    colint = 1
+    dcolv = 710*10**(-2)
+
+    if gas == "C02":
+        dcol = 660*10**(-2)
+        M = 44
+    elif gas == "CO":
+        dcol = 752*10^(-2)
+        M = 28
+    elif gas == "NH3":
+        dcol = 520*10^(-2)
+        M = 17
+    elif gas == "NO":
+        dcol = 634*10^(-2)
+        M = 30
+    elif gas == "SO2":
+        dcol = 720*10^(-2)
+        M = 64
+    else: print("Nepostojeci gas")
+
+    dcol12 = (dcol + dcolv)/2
+
     plt.ion()
 
-    t = np.arange(0, 60, dt)
+    t = np.arange(0, 50, dt)
     C = np.zeros((d,)*3)
     dCdt = np.zeros((d,)*3)
     Vx = np.zeros((d,)*3)
@@ -34,12 +63,12 @@ def con_dif(L, d, dt, Vx0, Vy0, Vz0, D, C0, R):
     dCdt[:,:,:] = 0
     Vx[:,:,:] = Vy[:,:,:] = Vz[:,:,:] = 0.0001
 
-    C[5,5,5] = C0
+    C[8,8,8] = R
     Vx[1:5,1:5,1:5] = Vx0
     Vy[1:5,1:5,1:5] = Vy0
     Vz[1:5,1:5,1:5] = Vz0
     
-    for m in range(1, len(t)):
+    for s in range(1, len(t)):
         plt.clf()
         Vxp = Vx.copy()
         Vyp = Vy.copy()
@@ -50,7 +79,10 @@ def con_dif(L, d, dt, Vx0, Vy0, Vz0, D, C0, R):
             for j in range(0, d-1):
                 for k in range(0, d-1):
                     
-                    
+                    p = m.exp((-g*Msv*k)/T0*R0)
+
+                    D = ((A*T**(3/2))/(p*dcol12**2*colint))*m.sqrt(1/M+1/(Msv*1000))
+                    print(D)
 
                     Vx[i,j,k] = Vxp[i,j,k]-dt*(((Vxp[i,j,k]/dx)*(Vxp[i,j,k]-Vxp[i-1,j,k])+(Vyp[i,j,k]/dy)*(Vxp[i,j,k]-Vxp[i,j-1,k])+Vzp[i,j,k]/dx)*(Vxp[i,j,k]-Vxp[i-1,j,k]))
                     Vy[i,j,k] = Vyp[i,j,k]-dt*(((Vxp[i,j,k]/dx)*(Vyp[i,j,k]-Vyp[i-1,j,k])+(Vyp[i,j,k]/dy)*(Vyp[i,j,k]-Vyp[i,j-1,k])+Vzp[i,j,k]/dx)*(Vyp[i,j,k]-Vyp[i-1,j,k]))
@@ -65,13 +97,13 @@ def con_dif(L, d, dt, Vx0, Vy0, Vz0, D, C0, R):
                     else:
                         alfa[i,j,k] = 1
 
-        print(Vx)
+        #print(Vx)
     
         ax = plt.axes(projection="3d")
-        plot = ax.scatter3D(X, Y, Z, c=C, alpha=1, marker='.', cmap=plt.hot())
+        plot = ax.scatter3D(X, Y, Z, c=C, alpha=0.5, marker='s', cmap=plt.hot())
         fig.colorbar(plot)
         plt.show()
         plt.pause(0.1)
 
     
-con_dif(10, 10, 0.1, 0.001, 0.001, 0, 0.0001, 2, 0)
+con_dif(100, 10, 0.1, -0.005, -0.005, -0.005, "C02", 293, 2)
