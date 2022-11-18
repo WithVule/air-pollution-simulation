@@ -61,16 +61,16 @@ def con_dif(L, d, dt, Vx0, Vy0, Vz0, gas, T, R):
     Vy[1:5, 1:5, 1:5] = Vy0
     Vz[1:5, 1:5, 1:5] = Vz0
 
-    for s in range(1, len(t)):
+    for _ in range(1, len(t)):
         plt.clf()
         Vxp = Vx.copy()
         Vyp = Vy.copy()
         Vzp = Vz.copy()
         # print(Vx, Vy, Vz)
         # C[5, 5, 5] = C0 + (m-1)*R
-        for i in range(0, d - 1):
-            for j in range(0, d - 1):
-                for k in range(0, d - 1):
+        for i in range(d - 1):
+            for j in range(d - 1):
+                for k in range(d - 1):
 
                     p = m.exp((-g * Msv * k) / T0 * R0)
 
@@ -96,11 +96,7 @@ def con_dif(L, d, dt, Vx0, Vy0, Vz0, gas, T, R):
 
                     C = C + dCdt * dt
 
-                    if C[i, j, k] > 0.0001:
-                        alfa[i, j, k] = 0.5
-                    else:
-                        alfa[i, j, k] = 0
-
+                    alfa[i, j, k] = 0.5 if C[i, j, k] > 0.0001 else 0
         # print(Vx)
 
         ax = plt.axes(projection="3d")

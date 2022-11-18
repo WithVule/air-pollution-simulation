@@ -1,6 +1,13 @@
+import math as m
 import matplotlib.pyplot as plt
 import numpy as np
-import math as m
+
+def difusion(D, T, Ms, M, dcol):
+    A = 1.859 * 10 ** (-3)
+    colint = 1
+    p = 1
+    D = [((A * T ** (3 / 2)) / (p * dcol**2 * colint)) * m.sqrt(1 / M[i] + 1 / (Ms[i])) for i in range(len(D))]
+    return D
 
 def biraj(case, T):
     # dcolco2 = 660 * 10 ** (-2)
@@ -113,14 +120,8 @@ def biraj(case, T):
     M = gasovi['M']
     Ms = gasovi['MS']
 
-    A = 1.859 * 10 ** (-3)
-    colint = 1
-    p = 1
     D = np.empty(len(M))
-
-    for i in range(0, len(D)):
-        D[i] = ((A * T ** (3 / 2)) / (p * dcol ** 2 * colint)) * m.sqrt(1 / M[i] + 1 / (Ms[i]))
-
+    D = difusion(D, T, Ms, M, dcol)
     return D
 
 
@@ -150,13 +151,13 @@ def condif(L, n, dt, Vx0, Vy0, T, case, CO2, CO, NH3, NO, SO2):
     Vy[:, :] = 0.001
     Vx[0:15, 0:15] = Vx0
     Vy[0:25, 0:15] = Vy0
-    for i in range(0, len(D)):
+    for i in range(len(D)):
         if C0[i] > 0:
             C[int(n / 2), int(n / 2), i] = C0[i]
 
         Cfin[int(n / 2), int(n / 2)] = Cfin[int(n / 2), int(n / 2)] + C[int(n / 2), int(n / 2), i]
 
-    for s in range(0, len(t)):
+    for s in range(len(t)):
         plt.clf()
         Vxp = Vx.copy()
         Vyp = Vy.copy()
@@ -167,15 +168,15 @@ def condif(L, n, dt, Vx0, Vy0, T, case, CO2, CO, NH3, NO, SO2):
         C[-1, :, :] = C[:, -1, :] = 0
         # C[n-1,:, :] = C[:,n-1, :] = 0
         # C[7,7] = (m*dt)*R
-        for i in range(0, n - 1):
-            for j in range(0, n - 1):
+        for i in range(n - 1):
+            for j in range(n - 1):
 
                 Vx[i, j] = Vxp[i, j] - dt * ((Vxp[i, j] / dx) * (Vxp[i, j] - Vxp[i - 1, j]) + (Vyp[i, j] / dy) * (
                         Vxp[i, j] - Vxp[i, j - 1]))
                 Vy[i, j] = Vyp[i, j] - dt * ((Vxp[i, j] / dx) * (Vyp[i, j] - Vyp[i - 1, j]) + (Vyp[i, j] / dy) * (
                         Vyp[i, j] - Vyp[i, j - 1]))
 
-                for k in range(0, len(D)):
+                for k in range(len(D)):
                     dCdt[i, j, k] = D[k] * ((C[i + 1, j, k] - 2 * C[i, j, k] + C[i - 1, j, k]) / dx ** 2
                                             + (C[i, j + 1, k] - 2 * C[i, j, k] + C[i, j - 1, k]) / dy ** 2) \
                                     - Vx[i, j] * ((C[i, j, k] - C[i - 1, j, k]) / dx) - Vy[i, j] * (
